@@ -1,6 +1,6 @@
 module domaintool
 
-go 1.21.1
+go 1.21
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
