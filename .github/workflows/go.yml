@@ -29,3 +29,15 @@ jobs:
 
     - name: Test
       run: go test -v ./main.go
+
+    - name: Upload an Artifact
+      uses: actions/upload-artifact@v4.3.3
+      with:
+    # Artifact name
+        name: binaries # optional, default is artifact
+    # A file, directory or wildcard pattern that describes what to upload
+        path: |
+          domaintool
+          domain-tool-updater
+    # The desired behavior if no files are found using the provided path.
+        retention-days: 2
