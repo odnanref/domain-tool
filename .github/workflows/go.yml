@@ -6,11 +6,14 @@ name: Domain Tool
 on:
   push:
     branches: [ "main" ]
+    paths-ignore: 
+      - .github/**
   pull_request:
     branches: [ "main" ]
+    paths-ignore: 
+      - .github/**
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -24,7 +27,7 @@ jobs:
     - name: Build domain tool
       run: go build -v -o domaintool
 
-    - name: Build domain tool
+    - name: Build domain tool updater
       run: cd domain-tool-updater && go build -v -o domain-tool-updater
 
     - name: Test
