@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 	"log"
+	"os"
 
 	_ "github.com/lib/pq"
 	"domain-tool-updater/dnsquery"
@@ -116,8 +117,17 @@ func insertDomainHistory(domain DomainInfo) error {
 func main() {
 	fmt.Println("Started Updater...")
 
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbName := os.Getenv("DB_NAME")
+
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
+	dbUser, dbPassword, dbHost, dbName)
+
 	var err error
-	db, err = sql.Open("postgres", "postgres://postgres:enlabium-invictus@localhost/domaintool?sslmode=disable")
+	db, err = sql.Open("postgres", dsn)
+	
 	if err != nil {
 		panic(err)
 	}

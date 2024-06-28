@@ -116,7 +116,7 @@ func main() {
 	dbUser, dbPassword, dbHost, dbName)
 
 	var err error
-	db, err = sql.Open("postgres", "postgres://postgres:enlabium-invictus@localhost/domaintool?sslmode=disable")
+	db, err = sql.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
 	}
