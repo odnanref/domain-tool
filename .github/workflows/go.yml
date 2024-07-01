@@ -46,6 +46,7 @@ jobs:
           bin/domain-tool-updater
         retention-days: 2
   package:
+    environment: deploy
     needs: build
     runs-on: ubuntu-latest
     steps:
