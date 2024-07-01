@@ -44,6 +44,7 @@ jobs:
           bin/domain-tool-updater
         retention-days: 2
   package:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
