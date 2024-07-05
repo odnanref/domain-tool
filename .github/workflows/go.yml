@@ -72,6 +72,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCHERHUB_USERNAME }}/domain-tool:latest
+          tags: andref/domain-tool:latest
         
         
