@@ -36,6 +36,12 @@
         <label for="nameservers">Nameservers:</label>
 	<input type="text" id="nameservers" name="nameservers" value="{{ .domain.Nameservers }}"><br>
 
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+		<option value="1">Active</option>
+		<option value="0">Inactive</option>
+	</select>
+	<br/>
         <input type="submit" value="Submit">
     </form>
    </div>

@@ -1,5 +1,4 @@
-{{ template "base" . }}
-{{ define "content_insert" }}    
+{{ define "content" }}    
 <h1>Insert Domain Information</h1>
     <form action="/submit" method="post">
         <label for="name">Name:</label>
@@ -35,7 +34,14 @@
         <label for="nameservers">Nameservers:</label>
         <input type="text" id="nameservers" name="nameservers"><br>
 
-        <input type="submit" value="Submit">
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+		<option value="1">Active</option>
+		<option value="0">Inactive</option>
+	</select>
+	<br/>
+        
+	<input type="submit" value="Submit">
     </form>
 
 {{ end }}

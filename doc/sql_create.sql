@@ -1,3 +1,7 @@
+CREATE DATABASE domaintool;
+
+\c domaintool;
+
 CREATE TABLE domain_info (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -8,7 +12,8 @@ CREATE TABLE domain_info (
     last_check TIMESTAMP NOT NULL,
     spf VARCHAR(255),
     dmarc VARCHAR(255),
-    nameservers TEXT
+    nameservers TEXT,
+    status BOOLEAN
 );
 
 
@@ -22,7 +27,8 @@ CREATE TABLE domain_info_history (
     last_check TIMESTAMP NOT NULL,
     spf VARCHAR(255),
     dmarc VARCHAR(255),
-    nameservers TEXT
+    nameservers TEXT,
+    status BOOLEAN
 );
 
 
