@@ -19,7 +19,8 @@
 {{range .domains}}
 	<tr>
 		<td>
-		<a class="btn btn-primary" href="/details?domain={{ .Name }}">Edit</a>
+			<a class="btn btn-sm btn-primary" href="/details?domain={{ .Name }}">Edit</a><br/>
+		<a class="btn btn-sm btn-warning" href="/disable?domain={{ .Name }}">Disable</a>
 		</td>
   		<td>{{.Name}}</td>
 		<td>{{.Registrar}}</td>
@@ -34,6 +35,7 @@
 		<td>{{.Spf}}</td>
 		<td>{{.Dmarc}}</td>
 		<td>{{.Nameservers}}</td>
+		<td>{{ if eq .Status true}}Active{{else}}Inactive{{end}}</td>
 	</tr>
 {{end}}
 </table>

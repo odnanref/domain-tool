@@ -24,13 +24,13 @@ type DomainInfo struct {
 	Spf         string
 	Dmarc       string
 	Nameservers string
-	Status      string
+	Status      bool
 }
 
 var db *sql.DB
 
 func getDomainInfo(db *sql.DB, domainName string) (*DomainInfo, error) {
-	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers FROM domain_info WHERE name = $1"
+	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info WHERE name = $1"
 	var domain DomainInfo
 	err := db.QueryRow(query, domainName).Scan(
 		&domain.Name,
@@ -55,7 +55,7 @@ func getDomainInfo(db *sql.DB, domainName string) (*DomainInfo, error) {
 }
 
 func getDomainInfoAll(db *sql.DB) ([]DomainInfo, error) {
-	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info WHERE status = 1"
+	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info WHERE status = true"
 	rows, err := db.Query(query)
 
 	if err != nil {
@@ -111,8 +111,8 @@ func updateNS(db *sql.DB, domainName string, nsRecord string) error {
 }
 
 func insertDomainHistory(domain DomainInfo) error {
-	_, err := db.Exec("INSERT INTO domain_info_history (name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,1)",
-		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.LastCheck, domain.Spf, domain.Dmarc, domain.Nameservers)
+	_, err := db.Exec("INSERT INTO domain_info_history (name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.LastCheck, domain.Spf, domain.Dmarc, domain.Nameservers, true)
 	return err
 }
 
@@ -180,6 +180,7 @@ func main() {
 			Dmarc:       dmarcRecord,
 			Spf:         spfRecord,
 			Nameservers: nsRecordcomma,
+			Status:      true,
 		}
 		err_insert := insertDomainHistory(domain)
 		if err_insert != nil {
