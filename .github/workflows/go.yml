@@ -26,6 +26,9 @@ jobs:
       with:
         go-version: '1.20'
 
+    - name: Create bin directory
+      run: mkdir bin/
+
     - name: Build domain tool
       run: go build -v -o domaintool && mv domaintool bin/
 
