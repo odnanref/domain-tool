@@ -2,7 +2,8 @@
 package main
 
 import (
-	"database/sql"
+	"domaintool/database"
+	"domaintool/models"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,86 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
-
-// DomainInfo represents the structure you provided
-type DomainInfo struct {
-	Name        string
-	Registrar   string
-	State       string
-	Tier        string
-	TransferTo  string
-	LastCheck   time.Time
-	Spf         string
-	Dmarc       string
-	Nameservers string
-	Status      bool
-}
-
-var db *sql.DB
-
-// getDomainInfo queries the domain information by name
-func getDomainInfo(db *sql.DB, domainName string) (*DomainInfo, error) {
-	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info WHERE name = $1"
-	var domain DomainInfo
-	err := db.QueryRow(query, domainName).Scan(
-		&domain.Name,
-		&domain.Registrar,
-		&domain.State,
-		&domain.Tier,
-		&domain.TransferTo,
-		&domain.LastCheck,
-		&domain.Spf,
-		&domain.Dmarc,
-		&domain.Nameservers,
-		&domain.Status,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("no domain found with name: %s", domainName)
-		}
-		return nil, err
-	}
-
-	return &domain, nil
-}
-
-func getDomainInfoHistoryAllByDomain(db *sql.DB, domainName string) ([]DomainInfo, error) {
-	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info_history WHERE name = $1 "
-	rows, err := db.Query(query, domainName)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var domains []DomainInfo
-	for rows.Next() {
-		var domain DomainInfo
-		if err := rows.Scan(
-			&domain.Name,
-			&domain.Registrar,
-			&domain.State,
-			&domain.Tier,
-			&domain.TransferTo,
-			&domain.LastCheck,
-			&domain.Spf,
-			&domain.Dmarc,
-			&domain.Nameservers,
-			&domain.Status,
-		); err != nil {
-
-			return nil, err
-		}
-
-		domains = append(domains, domain)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return domains, nil
-}
 
 func createMyRender() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
@@ -119,12 +40,9 @@ func main() {
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
 		dbUser, dbPassword, dbHost, dbName)
-	var err error
-	db, err = sql.Open("postgres", dsn)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
+
+	database.Initialize(dsn)
+	defer database.Close()
 
 	r.GET("/details", handleFormEdit)
 	r.GET("/add", handleForm)
@@ -143,8 +61,8 @@ func handleFormEdit(c *gin.Context) {
 	fmt.Println("FORM EDIT")
 	domain := c.Query("domain")
 	// Query the domain information
-	domainInfo, err := getDomainInfo(db, domain)
-	domainInfoHistory, err := getDomainInfoHistoryAllByDomain(db, domain)
+	domainInfo, err := database.GetDomainInfo(domain)
+	domainInfoHistory, err := database.GetDomainInfoHistoryAllByDomain(domain)
 
 	if err != nil {
 		log.Fatal(err)
@@ -164,9 +82,9 @@ func handleSubmit(c *gin.Context) {
 		return
 	}
 
-	_, exists_err := getDomainInfo(db, c.PostForm("name"))
+	_, exists_err := database.GetDomainInfo(c.PostForm("name"))
 
-	domain := DomainInfo{
+	domain := models.DomainInfo{
 		Name:        c.PostForm("name"),
 		Registrar:   c.PostForm("registrar"),
 		State:       c.PostForm("state"),
@@ -180,14 +98,14 @@ func handleSubmit(c *gin.Context) {
 	}
 
 	if exists_err != nil {
-		in_err := insertDomainInfo(domain)
+		in_err := database.InsertDomainInfo(domain)
 		if in_err != nil {
 			log.Println(in_err)
 			c.String(500, "Failed to insert domain info %v", in_err)
 			return
 		}
 	} else {
-		updt_err := updateDomainInfo(domain)
+		updt_err := database.UpdateDomainInfo(domain)
 		if updt_err != nil {
 			log.Println(updt_err)
 			c.String(500, "Failed to Update domain info %v", updt_err)
@@ -199,35 +117,11 @@ func handleSubmit(c *gin.Context) {
 
 }
 
-func insertDomainInfo(domain DomainInfo) error {
-	_, err := db.Exec("INSERT INTO domain_info (name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers,status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.LastCheck, domain.Spf, domain.Dmarc, domain.Nameservers, domain.Status)
-	return err
-}
-
-func updateDomainInfo(domain DomainInfo) error {
-	_, err := db.Exec("UPDATE domain_info SET registrar=$2, state=$3, tier=$4, transfer_to=$5, last_check=NOW(), spf=$6, dmarc=$7, nameservers=$8,status=$9 WHERE name=$1",
-		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.Spf, domain.Dmarc, domain.Nameservers, domain.Status)
-	return err
-}
-
 func handleGet(c *gin.Context) {
-	rows, err := db.Query("SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info")
+	domains, err := database.GetAll()
 	if err != nil {
 		c.String(500, "1 Failed to get domain info %v", err)
 		return
-	}
-	defer rows.Close()
-
-	var domains []DomainInfo
-	for rows.Next() {
-		var domain DomainInfo
-		err := rows.Scan(&domain.Name, &domain.Registrar, &domain.State, &domain.Tier, &domain.TransferTo, &domain.LastCheck, &domain.Spf, &domain.Dmarc, &domain.Nameservers, &domain.Status)
-		if err != nil {
-			c.String(500, "2 Failed to scan domain info %s", err)
-			return
-		}
-		domains = append(domains, domain)
 	}
 
 	c.HTML(200, "home", gin.H{"domains": domains})

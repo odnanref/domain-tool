@@ -1,2 +1,3 @@
 doc/sql_source.sql
 .env
+bin/
