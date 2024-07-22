@@ -8,10 +8,12 @@ on:
     branches: [ "main" ]
     paths-ignore: 
       - .github/**
+      - doc/**
   pull_request:
     branches: [ "main" ]
     paths-ignore: 
       - .github/**
+      - doc/**
   workflow_dispatch:
     
 
