@@ -1,0 +1,28 @@
+services:
+  domain-tool:
+    image: "andref/domain-tool"
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: enlabium-invictus
+      DB_NAME: domaintool
+    ports:
+      - "8080:8080"
+    networks:
+      - domaintool
+  postgres:
+    image: "postgres:latest"
+    environment:
+      POSTGRES_PASSWORD: enlabium-invictus
+    volumes:
+      - type: bind
+        source: ./docker-entrypoint-initdb.d 
+        target: /docker-entrypoint-initdb.d/
+    networks:
+      - domaintool
+
+volumes:
+  docker-entrypoint-initdb.d:
+
+networks:
+  domaintool:
