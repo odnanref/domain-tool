@@ -32,8 +32,43 @@
 		</td>
 		<td>{{.TransferTo}}</td>
 		<td>{{.LastCheck}}</td>
-		<td>{{.Spf}}</td>
-		<td>{{.Dmarc}}</td>
+		<td>{{ if .Spf }}
+				{{if eq (safeSpf .Spf) 2}}
+					<p role="alert" class="alert alert-warning">
+				{{.Spf}}</p> 
+				{{ else }}
+					{{if eq (safeSpf .Spf) 3 }}
+					<p role="alert" class="alert alert-success">
+					{{.Spf}}
+					</p>
+					{{end}}
+				{{end}}
+			{{else}}
+			<p role="alert" class="alert alert-danger">&nbsp;Missing&nbsp;</p>
+			{{ end }}
+		</td>
+		<td>
+		{{ if .Dmarc }}
+	       	{{if eq (safeDmarc .Dmarc) 2}}
+	       		<p role="alert" class="alert alert-warning">
+	       	{{.Spf}}</p> 
+	       	{{ else }}
+	       		{{if eq (safeDmarc .Dmarc) 3 }}
+	       		<p role="alert" class="alert alert-success">
+	       		{{.Spf}}
+	       		</p>
+	       		{{end}}
+	       		{{if eq (safeDmarc .Dmarc) 4 }}
+	       		<p role="alert" class="alert alert-light">
+	       		{{.Spf}}
+	       		</p>
+	       		{{end}}
+	       	{{end}}
+	
+		{{else}}
+			<p role="alert" class="alert alert-danger">&nbsp;Missing&nbsp;</p>
+		{{end}}
+		</td>
 		<td>{{.Nameservers}}</td>
 		<td>{{ if eq .Status true}}Active{{else}}Inactive{{end}}</td>
 	</tr>

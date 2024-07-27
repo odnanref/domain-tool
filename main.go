@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"text/template"
 	"time"
 
 	"github.com/gin-contrib/multitemplate"
@@ -17,11 +19,41 @@ import (
 )
 
 func createMyRender() multitemplate.Renderer {
+
+	funcMap := template.FuncMap{
+		"safeSpf":   safeSpf,
+		"safeDmarc": safeDmarc,
+	}
+
 	r := multitemplate.NewRenderer()
-	r.AddFromFiles("insert", "templates/base.html", "templates/form.html")
-	r.AddFromFiles("edit", "templates/base.html", "templates/form_edit.html")
-	r.AddFromFiles("home", "templates/base.html", "templates/list.html")
+	r.AddFromFilesFuncs("insert", funcMap, "templates/base.html", "templates/form.html")
+	r.AddFromFilesFuncs("edit", funcMap, "templates/base.html", "templates/form_edit.html")
+	r.AddFromFilesFuncs("home", funcMap, "templates/base.html", "templates/list.html")
 	return r
+}
+
+func safeSpf(spf string) int {
+	if strings.Contains(spf, "-all") {
+		return 2
+	}
+	if strings.Contains(spf, "~all") {
+		return 3
+	}
+	return 0
+}
+
+func safeDmarc(dmarc string) int {
+	if strings.Contains(dmarc, "p=none") {
+		return 2
+	}
+	if strings.Contains(dmarc, "p=reject") {
+		return 3
+	}
+
+	if strings.Contains(dmarc, "p=quarantine") {
+		return 4
+	}
+	return 0
 }
 
 func main() {
@@ -30,6 +62,7 @@ func main() {
 	r.Static("/docs", "./public/docs")
 	r.Static("/css/", "./public/css/")
 	r.Static("/js/", "./public/js/")
+
 	// Load templates
 	r.HTMLRender = createMyRender()
 

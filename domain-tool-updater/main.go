@@ -92,6 +92,31 @@ func getDomainInfoAll(db *sql.DB) ([]DomainInfo, error) {
 	return domains, nil
 }
 
+func getDomainInfoHistory(domainName string) (*DomainInfo, error) {
+	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info_history WHERE name = $1"
+	var domain DomainInfo
+	err := db.QueryRow(query, domainName).Scan(
+		&domain.Name,
+		&domain.Registrar,
+		&domain.State,
+		&domain.Tier,
+		&domain.TransferTo,
+		&domain.LastCheck,
+		&domain.Spf,
+		&domain.Dmarc,
+		&domain.Nameservers,
+		&domain.Status,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("no domain found with name: %s", domainName)
+		}
+		return nil, err
+	}
+
+	return &domain, nil
+}
+
 func updateSPF(db *sql.DB, domainName string, spfRecord string) error {
 	query := "UPDATE domain_info SET spf = $1, last_check=NOW() WHERE name = $2"
 	_, err := db.Exec(query, spfRecord, domainName)
@@ -142,6 +167,8 @@ func main() {
 	}
 
 	for _, domain := range domains {
+		domaininfo, StorageErr := getDomainInfoHistory(domain)
+
 		log.Println("Domain being checked: ", domain.Name)
 		nsRecords, err := dnsquery.GetNSRecords(domain.Name)
 		nsRecordcomma := ""
@@ -153,18 +180,33 @@ func main() {
 			}
 		}
 		updateNS(db, domain.Name, nsRecordcomma)
+		if StorageErr == nil {
+			if nsRecordcomma != domaininfo.Nameservers {
+				//alert
+			}
+		}
 
 		dmarcRecord, err := dnsquery.GetDMARCRecord(domain.Name)
 		if err != nil {
 			log.Println("Domain DMARC Record not found ", domain.Name)
 		}
 		updateDMARC(db, domain.Name, dmarcRecord)
+		if StorageErr == nil {
+			if dmarcRecord != domaininfo.Dmarc {
+				//alert
+			}
+		}
 
 		spfRecord, err := dnsquery.GetSPFRecord(domain.Name)
 		if err != nil {
 			log.Println("Domain SPF Record not found ", domain.Name)
 		}
 		updateSPF(db, domain.Name, spfRecord)
+		if StorageErr == nil {
+			if spfRecord != domaininfo.Spf {
+				// Alert
+			}
+		}
 
 		domainRec, err := getDomainInfo(db, domain.Name)
 		if err != nil {
