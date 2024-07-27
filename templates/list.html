@@ -55,12 +55,12 @@
 	       	{{ else }}
 	       		{{if eq (safeDmarc .Dmarc) 3 }}
 	       		<p role="alert" class="alert alert-success">
-	       		{{.Spf}}
+	       		{{.Dmarc}}
 	       		</p>
 	       		{{end}}
 	       		{{if eq (safeDmarc .Dmarc) 4 }}
 	       		<p role="alert" class="alert alert-light">
-	       		{{.Spf}}
+	       		{{.Dmarc}}
 	       		</p>
 	       		{{end}}
 	       	{{end}}
