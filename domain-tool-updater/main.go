@@ -167,7 +167,7 @@ func main() {
 	}
 
 	for _, domain := range domains {
-		domaininfo, StorageErr := getDomainInfoHistory(domain)
+		domain_stored, StorageErr := getDomainInfoHistory(domain.Name)
 
 		log.Println("Domain being checked: ", domain.Name)
 		nsRecords, err := dnsquery.GetNSRecords(domain.Name)
@@ -181,7 +181,7 @@ func main() {
 		}
 		updateNS(db, domain.Name, nsRecordcomma)
 		if StorageErr == nil {
-			if nsRecordcomma != domaininfo.Nameservers {
+			if nsRecordcomma != domain_stored.Nameservers {
 				//alert
 			}
 		}
@@ -192,7 +192,7 @@ func main() {
 		}
 		updateDMARC(db, domain.Name, dmarcRecord)
 		if StorageErr == nil {
-			if dmarcRecord != domaininfo.Dmarc {
+			if dmarcRecord != domain_stored.Dmarc {
 				//alert
 			}
 		}
@@ -203,7 +203,7 @@ func main() {
 		}
 		updateSPF(db, domain.Name, spfRecord)
 		if StorageErr == nil {
-			if spfRecord != domaininfo.Spf {
+			if spfRecord != domain_stored.Spf {
 				// Alert
 			}
 		}
