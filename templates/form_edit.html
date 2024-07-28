@@ -11,17 +11,17 @@
 
         <label for="state">State:</label>
         <select id="state" name="state">
-		<option value="pending_transfer"> Pending Transfer </option>
-		<option value="locked">Locked</option>
+		<option value="pending_transfer" {{ if eq .domain.State "pending_transfer" }}selected="selected"{{end}}>Pending Transfer </option>
+		<option value="locked" {{ if eq .domain.State "locked" }}selected="selected"{{end}}>Is Locked</option>
 	</select>
 	<br>
 
         <label for="tier">Tier Level:</label>
         <select id="tier" name="tier">
-		<option value="tier_1">Tier 1</option>
-		<option value="tier_2">Tier 2</option>
-		<option value="tier_3">Tier 3</option>
-		<option value="missword">MissWord</option>
+		<option value="tier_1" {{ if eq .domain.Tier "tier_1" }}selected="selected"{{end}} >Tier 1</option>
+		<option value="tier_2" {{ if eq .domain.Tier "tier_2" }}selected="selected"{{end}} >Tier 2</option>
+		<option value="tier_3" {{ if eq .domain.Tier "tier_3" }}selected="selected"{{end}} >Tier 3</option>
+		<option value="missword" {{ if eq .domain.Tier "missword"}}selected="selected"{{end}}>MissWord</option>
 	</select>
 	<br>
         <label for="transferTo">Transfer To:</label>
@@ -38,8 +38,8 @@
 
         <label for="status">Status:</label>
         <select id="status" name="status">
-		<option value="1">Active</option>
-		<option value="0">Inactive</option>
+		<option value="1" {{ if eq .domain.Status true }}selected="selected"{{end}} >Active</option>
+		<option value="0" {{ if eq .domain.Status false }}selected="selected"{{end}} >Inactive</option>
 	</select>
 	<br/>
         <input type="submit" value="Submit">
