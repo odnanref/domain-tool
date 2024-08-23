@@ -1,6 +1,6 @@
 services:
   domain-tool:
-    image: "andref/domain-tool"
+    image: "domain-tool"
     environment:
       DB_HOST: postgres
       DB_USER: postgres

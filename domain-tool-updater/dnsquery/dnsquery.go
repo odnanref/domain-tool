@@ -5,8 +5,10 @@ import (
 	"log"
 	"strings"
 	"net"
+	"regexp"
 
 	"github.com/miekg/dns"
+	"github.com/likexian/whois"
 )
 
 // DNSQuery performs a DNS query for a given domain and record type.
@@ -115,6 +117,96 @@ func GetDKIMRecord(domain, selector string) (string, error) {
 	return "", fmt.Errorf("no DKIM record found for %s with selector %s", domain, selector)
 }
 
+func GetWhois(domain string) (string,error) {
+	// Perform the WHOIS query
+    result, err := whois.Whois(domain)
+    if err != nil {
+        log.Fatalf("Error fetching WHOIS information: %v", err)
+    }
+	return result, err
+}
+
+func GetExpirationDate(domain string) (string, error) {
+	patterns := []string{
+		`Registry Expiry Date:\s*(.*)`,       // Common for many TLDs
+		`Registrar Registration Expiration Date:\s*(.*)`, // Some other TLDs
+		`Expiration Date:\s*(.*)`,            // General pattern
+	}
+
+	result, err := GetWhois(domain)
+	if err != nil {
+		return "", err
+	}
+	expirationDate := ""
+	for _, pattern := range patterns {
+		re := regexp.MustCompile(pattern)
+		match := re.FindStringSubmatch(result)
+		if match != nil {
+			expirationDate = strings.TrimSpace(match[1])
+			break
+		}
+	}
+
+	if expirationDate != "" {
+		fmt.Println("Expiration Date:", expirationDate)
+	} else {
+		fmt.Println("Expiration Date not found in WHOIS information")
+	}
+
+	return expirationDate, err
+
+}
+
+func GetAllDatesFromWhois(domain string) map[string]string {
+	patterns := map[string]string{
+        "creationDate":  `Creation Date:\s*(.*)`,       // Common for many TLDs
+        "expirationDate": `Registry Expiry Date:\s*(.*)`, // Common for many TLDs
+        "expirationDateAlt": `Registrar Registration Expiration Date:\s*(.*)`, // Some other TLDs
+        "expirationDateGeneral": `Expiration Date:\s*(.*)`,  // General pattern
+        "registrar":      `Registrar:\s*(.*)`,           // General pattern for the registrar
+    }
+
+	// Initialize variables to store the extracted information
+    creationDate := ""
+    expirationDate := ""
+    registrar := ""
+
+	result, err := GetWhois(domain)
+	if err != nil {
+		return _, err
+	}
+	// Extract the creation date
+    re := regexp.MustCompile(patterns["creationDate"])
+    match := re.FindStringSubmatch(result)
+    if match != nil {
+        creationDate = strings.TrimSpace(match[1])
+    }
+
+    // Extract the expiration date using multiple possible patterns
+    for _, pattern := range []string{patterns["expirationDate"], patterns["expirationDateAlt"], patterns["expirationDateGeneral"]} {
+        re = regexp.MustCompile(pattern)
+        match = re.FindStringSubmatch(result)
+        if match != nil {
+            expirationDate = strings.TrimSpace(match[1])
+            break
+        }
+    }
+
+    // Extract the registrar
+    re = regexp.MustCompile(patterns["registrar"])
+    match = re.FindStringSubmatch(result)
+    if match != nil {
+        registrar = strings.TrimSpace(match[1])
+    }
+
+	return map[string]string{
+		"creationDate":  creationDate,
+        "expirationDate": expirationDate,
+        "registrar":      registrar,
+	}
+
+}
+
 func GetDomainDetails(domain string, dkim_selector []string) {
 	
 	txtRecords, err := GetTXTRecords(domain)
@@ -154,5 +246,15 @@ func GetDomainDetails(domain string, dkim_selector []string) {
 			fmt.Printf("DKIM record for %s (selector %s):\n%s\n\n", domain, selector, dkimRecord)
 		}
 	}
+
+	expDate, experror := GetExpirationDate(domain)
+	if experror != nil {
+		log.Printf("Failed to get SPF record: %v", experror)
+	} else {
+		log.Printf("Expiration Date: %s", expDate)
+	}
+
+	mapOfDates := GetAllDatesFromWhois(domain)
+
 }
 
