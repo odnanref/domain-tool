@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"log"
 	"os"
 	"time"
@@ -13,6 +14,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func joinMapByColon(m map[string]string) string {
+    var pairs []string
+    for key, value := range m {
+        pairs = append(pairs, key+":"+value)
+    }
+    return strings.Join(pairs, ", ")
+}
 
 func main() {
 	fmt.Println("Started Updater...")
@@ -80,6 +88,21 @@ func main() {
 		if err != nil {
 			log.Println("Error geting info for domain Name:", domain.Name)
 		}
+
+		mapOfDates := dnsquery.GetAllDatesFromWhois(domain.Name);
+		for _, valor := range mapOfDates {
+			fmt.Println("Key Value:", valor);
+		}
+		for chave, valor := range mapOfDates {
+			fmt.Printf("Key %s Value: %s", chave, valor)
+		}
+		// Whois information
+		whois := "";
+		if len(mapOfDates) > 0 {
+			whois = joinMapByColon(mapOfDates);
+			database.UpdateWhois(domain.Name, whois)
+		}
+
 		domain := models.DomainInfo{
 			Name:        domainRec.Name,
 			Registrar:   domainRec.Registrar,
@@ -91,6 +114,7 @@ func main() {
 			Spf:         spfRecord,
 			Nameservers: nsRecordcomma,
 			Status:      true,
+			Whois:		 whois,
 		}
 		err_insert := database.InsertDomainHistory(domain)
 		if err_insert != nil {

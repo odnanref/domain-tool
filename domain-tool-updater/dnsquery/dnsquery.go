@@ -121,7 +121,7 @@ func GetWhois(domain string) (string,error) {
 	// Perform the WHOIS query
     result, err := whois.Whois(domain)
     if err != nil {
-        log.Fatalf("Error fetching WHOIS information: %v", err)
+        log.Println("Error fetching WHOIS information: %v", err)
     }
 	return result, err
 }
@@ -173,7 +173,7 @@ func GetAllDatesFromWhois(domain string) map[string]string {
 
 	result, err := GetWhois(domain)
 	if err != nil {
-		return _, err
+		return map[string]string{}
 	}
 	// Extract the creation date
     re := regexp.MustCompile(patterns["creationDate"])
@@ -255,6 +255,9 @@ func GetDomainDetails(domain string, dkim_selector []string) {
 	}
 
 	mapOfDates := GetAllDatesFromWhois(domain)
+	for chave, valor := range mapOfDates {
+		fmt.Printf("Key %s Value: %s", chave, valor)
+	}
 
 }
 

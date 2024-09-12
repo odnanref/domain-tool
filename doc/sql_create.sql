@@ -13,7 +13,8 @@ CREATE TABLE domain_info (
     spf VARCHAR(255),
     dmarc VARCHAR(255),
     nameservers TEXT,
-    status BOOLEAN
+    status BOOLEAN,
+    whois   TEXT
 );
 
 
@@ -28,7 +29,8 @@ CREATE TABLE domain_info_history (
     spf VARCHAR(255),
     dmarc VARCHAR(255),
     nameservers TEXT,
-    status BOOLEAN
+    status BOOLEAN,
+    whois   TEXT
 );
 
 

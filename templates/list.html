@@ -1,5 +1,38 @@
 {{ define "content" }}
+<script>
+	function myFunction() {
+	  // Declare variables
+	  var input, filter, table, tr, td, i, txtValue;
+	  input = document.getElementById("mysearch");
+	  filter = input.value.toUpperCase();
+	  table = document.getElementById("domainstable");
+	  tr = table.getElementsByTagName("tr");
+	
+	  // Loop through all table rows, and hide those who don't match the search query
+	  for (i = 0; i < tr.length; i++) {
+		td = tr[i].getElementsByTagName("td")[7];
+		tddmarc = tr[i].getElementsByTagName("td")[8];
+		if (td && tddmarc) {
+		  txtValue = td.textContent || td.innerText;
+		  txtValueDmarc = tddmarc.textContent || td.innerText;
+		  if (txtValue.toUpperCase().indexOf(filter) > -1 || txtValueDmarc.toUpperCase().indexOf(filter) > -1) {
+			tr[i].style.display = "";
+		  } else {
+			tr[i].style.display = "none";
+		  }
+		}
+	  }
+	}
+	
+	function ShowAlert(alert_on) {
+		domain = alert_on.replace("index_","");
+		$("<p>Domain Expiring: " + domain + "</p>").appendTo('#box');
+		$("#box").css("display", "block");
+	}
+</script>
+
 <h1>Domain Information</h1>
+<div class="alert alert-primary" style="display: none;" role="alert" id="box"></div>
 <div class="table-responsive small">
 Filter by: <input type="text" name="mysearch" id="mysearch" onkeyup="myFunction()" placeholder="Search for spf Dmarc.." /><br/>
 <table id="domainstable" class="table table-striped table-sm">
@@ -15,6 +48,8 @@ Filter by: <input type="text" name="mysearch" id="mysearch" onkeyup="myFunction(
   <th>SPF</th>
   <th>DMARC</th>
   <th>Nameservers</th>
+  <th>Whois</th>
+  <th>Status</th>
 </tr>
 </thead>
 {{range .domains}}
@@ -71,34 +106,21 @@ Filter by: <input type="text" name="mysearch" id="mysearch" onkeyup="myFunction(
 		{{end}}
 		</td>
 		<td>{{.Nameservers}}</td>
+		{{ if eq (checkWhoisIsExpiring .Whois) true  }}
+		<td role="alert" class="alert alert-warning">
+			<p role="alert" class="alert alert-warning" id="index_{{ .Name}}">
+				{{.Whois}}
+			</p>
+			<script type="text/Javascript">
+				ShowAlert("index_{{ .Name }}");
+			</script>
+		</td>
+		{{ else }}
+		<td>{{.Whois}}</td>
+		{{ end }}
 		<td>{{ if eq .Status true}}Active{{else}}Inactive{{end}}</td>
 	</tr>
 {{end}}
 </table>
 </div>
-<script>
-function myFunction() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("mysearch");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("domainstable");
-  tr = table.getElementsByTagName("tr");
-
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[7];
-    tddmarc = tr[i].getElementsByTagName("td")[8];
-    if (td && tddmarc) {
-      txtValue = td.textContent || td.innerText;
-      txtValueDmarc = tddmarc.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1 || txtValueDmarc.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }
-  }
-}
-</script>
 {{ end }}

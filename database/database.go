@@ -35,7 +35,7 @@ func Close() {
 
 // GetDomainInfo queries the domain information by name
 func GetDomainInfo(domainName string) (*models.DomainInfo, error) {
-	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info WHERE name = $1"
+	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status, whois FROM domain_info WHERE name = $1"
 	var domain models.DomainInfo
 	err := db.QueryRow(query, domainName).Scan(
 		&domain.Name,
@@ -48,6 +48,7 @@ func GetDomainInfo(domainName string) (*models.DomainInfo, error) {
 		&domain.Dmarc,
 		&domain.Nameservers,
 		&domain.Status,
+		&domain.Whois,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -60,7 +61,7 @@ func GetDomainInfo(domainName string) (*models.DomainInfo, error) {
 }
 
 func GetDomainInfoHistoryAllByDomain(domainName string) ([]models.DomainInfo, error) {
-	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info_history WHERE name = $1 "
+	query := "SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status, whois FROM domain_info_history WHERE name = $1 "
 	rows, err := db.Query(query, domainName)
 
 	if err != nil {
@@ -83,6 +84,7 @@ func GetDomainInfoHistoryAllByDomain(domainName string) ([]models.DomainInfo, er
 			&domain.Dmarc,
 			&domain.Nameservers,
 			&domain.Status,
+			&domain.Whois,
 		); err != nil {
 
 			return nil, err
@@ -99,7 +101,7 @@ func GetDomainInfoHistoryAllByDomain(domainName string) ([]models.DomainInfo, er
 
 // List Domains
 func GetAll() ([]models.DomainInfo, error) {
-	rows, err := db.Query("SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status FROM domain_info")
+	rows, err := db.Query("SELECT name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers, status, whois FROM domain_info")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +110,8 @@ func GetAll() ([]models.DomainInfo, error) {
 	var domains []models.DomainInfo
 	for rows.Next() {
 		var domain models.DomainInfo
-		err := rows.Scan(&domain.Name, &domain.Registrar, &domain.State, &domain.Tier, &domain.TransferTo, &domain.LastCheck, &domain.Spf, &domain.Dmarc, &domain.Nameservers, &domain.Status)
+		err := rows.Scan(&domain.Name, &domain.Registrar, &domain.State, &domain.Tier, &domain.TransferTo, &domain.LastCheck, &domain.Spf, 
+			&domain.Dmarc, &domain.Nameservers, &domain.Status, &domain.Whois)
 		if err != nil {
 			return nil, err
 		}
@@ -120,14 +123,15 @@ func GetAll() ([]models.DomainInfo, error) {
 
 // Insert a new Domain to be queried
 func InsertDomainInfo(domain models.DomainInfo) error {
-	_, err := db.Exec("INSERT INTO domain_info (name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers,status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.LastCheck, domain.Spf, domain.Dmarc, domain.Nameservers, domain.Status)
+	_, err := db.Exec("INSERT INTO domain_info (name, registrar, state, tier, transfer_to, last_check, spf, dmarc, nameservers,status, whois) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.LastCheck, domain.Spf, domain.Dmarc, 
+		domain.Nameservers, domain.Status, domain.Whois)
 	return err
 }
 
 // Update DB By DomainInfo
 func UpdateDomainInfo(domain models.DomainInfo) error {
-	_, err := db.Exec("UPDATE domain_info SET registrar=$2, state=$3, tier=$4, transfer_to=$5, last_check=NOW(), spf=$6, dmarc=$7, nameservers=$8,status=$9 WHERE name=$1",
-		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.Spf, domain.Dmarc, domain.Nameservers, domain.Status)
+	_, err := db.Exec("UPDATE domain_info SET registrar=$2, state=$3, tier=$4, transfer_to=$5, last_check=NOW(), spf=$6, dmarc=$7, nameservers=$8,status=$9,whois=$10 WHERE name=$1",
+		domain.Name, domain.Registrar, domain.State, domain.Tier, domain.TransferTo, domain.Spf, domain.Dmarc, domain.Nameservers, domain.Status, domain.Whois)
 	return err
 }

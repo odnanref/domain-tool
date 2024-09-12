@@ -41,6 +41,10 @@
 		<option value="1" {{ if eq .domain.Status true }}selected="selected"{{end}} >Active</option>
 		<option value="0" {{ if eq .domain.Status false }}selected="selected"{{end}} >Inactive</option>
 	</select>
+
+	<label for="whois">Whois:</label>
+	<input type="text" id="whois" name="whois" value="{{ .domain.Whois }}"><br>
+
 	<br/>
         <input type="submit" value="Submit">
     </form>

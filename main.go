@@ -23,6 +23,7 @@ func createMyRender() multitemplate.Renderer {
 	funcMap := template.FuncMap{
 		"safeSpf":   safeSpf,
 		"safeDmarc": safeDmarc,
+		"checkWhoisIsExpiring": checkWhoisIsExpiring,
 	}
 
 	r := multitemplate.NewRenderer()
@@ -54,6 +55,79 @@ func safeDmarc(dmarc string) int {
 		return 4
 	}
 	return 0
+}
+
+
+func getAfter(word string) string {
+	key := "expirationDate:"
+
+    // Find the index where the key starts
+    startIndex := strings.Index(word, key)
+    if startIndex == -1 {
+        fmt.Println("Key not found!")
+        return ""
+    }
+
+    // Move the startIndex to the end of the key to get the substring after the key
+    startIndex += len(key)
+
+    // Extract the substring starting from startIndex
+    result := word[startIndex:]
+
+    // Optional: Trim any leading or trailing spaces or commas
+    result = strings.TrimSpace(result)
+    if commaIndex := strings.Index(result, ","); commaIndex != -1 {
+        result = result[:commaIndex]
+    }
+
+	return result
+}
+
+// Returns false if the date is not expired
+// Returns true if the date is about to be expired in more than 30 days and less than 30
+func checkWhoisIsExpiring(whois string) bool {
+	if strings.Contains(whois, "expirationDate") {
+		tmp := strings.Split(whois, ",")
+		if len(tmp) <=0 {
+			return true
+		}
+		dateString := ""
+		for _, value := range tmp {
+			if strings.Contains(value, "expirationDate") {
+				tmp2 := getAfter(value)
+				if len(tmp2) > 0 {
+					dateString = tmp2
+				} else {
+					return false
+				}
+			}
+		}
+		log.Println("String Date ", dateString)
+		// 2024-11-14T15:14:31Z
+		parsedDate, err := time.Parse(time.RFC3339, dateString)
+    	if err != nil {
+    	    log.Println("Error parsing date:", err)
+    	    return false
+    	}
+
+    	// Get the current date and time
+    	currentDate := time.Now()
+
+    	// Add 4 days to the current date
+    	futureDate := currentDate.AddDate(0, 0, 1)
+    	futurePreviousDate := currentDate.AddDate(0, 0, 100)
+    	// previousDatePrevious := currentDate.AddDate(0, 0, -14)
+
+    	// Compare the parsed date with the future date
+    	if parsedDate.After(futureDate) && parsedDate.Before(futurePreviousDate) {
+    	    log.Println("The date is more than 30 days after the current date.")
+			return true
+    	}
+
+		log.Println("The date is not in the expected timeframe.")
+		return false
+	}
+	return false
 }
 
 func main() {
@@ -128,6 +202,7 @@ func handleSubmit(c *gin.Context) {
 		Dmarc:       c.PostForm("dmarc"),
 		Nameservers: c.PostForm("nameservers"),
 		Status:      status,
+		Whois:		 c.PostForm("whois"),
 	}
 
 	if exists_err != nil {
