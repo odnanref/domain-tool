@@ -53,7 +53,7 @@ Filter by: <input type="text" name="mysearch" id="mysearch" onkeyup="myFunction(
 </tr>
 </thead>
 {{range .domains}}
-	<tr>
+    <tr {{ if eq .Status false }}class="table-dark"{{ end }}>
 		<td>
 			<a class="btn btn-sm btn-primary" href="/details?domain={{ .Name }}">Edit</a><br/>
 		<a class="btn btn-sm btn-warning" href="/disable?domain={{ .Name }}">Disable</a>
