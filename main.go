@@ -154,6 +154,7 @@ func main() {
 	r.GET("/details", handleFormEdit)
 	r.GET("/add", handleForm)
 	r.POST("/submit", handleSubmit)
+	r.GET("/disable", handleDisable)
 	r.GET("/", handleGet)
 
 	r.Run(":8080")
@@ -223,6 +224,27 @@ func handleSubmit(c *gin.Context) {
 
 	c.Redirect(http.StatusFound, "/")
 
+}
+
+func handleDisable(c *gin.Context) {
+	fmt.Println("FORM Disable")
+	domain := c.Query("domain")
+	// Query the domain information
+	err := database.DisableDomain(domain)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+        "message": "Failed updating domain.",
+        "status":  "Error",
+    })
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+        "message": "Update Successful",
+        "status":  "ok",
+    })
+	return
 }
 
 func handleGet(c *gin.Context) {

@@ -29,6 +29,18 @@
 		$("<p>Domain Expiring: " + domain + "</p>").appendTo('#box');
 		$("#box").css("display", "block");
 	}
+
+  function disableDomain(domain) {
+    $.get("http://localhost:8080/disable?domain=" + domain, function(data) {
+        console.log("Received:", data);
+		    $("<p>Domain Disabled: " + domain + "</p>").appendTo('#box');
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+		    $("<p>Domain Failed to update: " + domain + "</p>").appendTo('#box');
+        console.error("Request failed:", textStatus, errorThrown);
+    });
+
+		$("#box").css("display", "block");
+  }
 </script>
 
 <h1>Domain Information</h1>
@@ -56,7 +68,7 @@ Filter by: <input type="text" name="mysearch" id="mysearch" onkeyup="myFunction(
     <tr {{ if eq .Status false }}class="table-dark"{{ end }}>
 		<td>
 			<a class="btn btn-sm btn-primary" href="/details?domain={{ .Name }}">Edit</a><br/>
-		<a class="btn btn-sm btn-warning" href="/disable?domain={{ .Name }}">Disable</a>
+        <a class="btn btn-sm btn-warning" onClick="disableDomain('{{ .Name }}')">Disable</a>
 		</td>
   		<td>{{.Name}}</td>
 		<td>{{.Registrar}}</td>

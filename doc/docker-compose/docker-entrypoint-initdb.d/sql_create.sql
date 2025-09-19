@@ -37,6 +37,7 @@ CREATE TABLE public.domain_info (
     dmarc character varying(255),
     nameservers text,
     tier character varying(254),
+    whois character varying(254),
     status boolean
 );
 
@@ -58,6 +59,7 @@ CREATE TABLE public.domain_info_history (
     spf character varying(255),
     dmarc character varying(255),
     nameservers text,
+    whois character varying(254),
     status boolean
 );
 
@@ -686,7 +688,6 @@ ALTER TABLE ONLY public.domain_info_history
 
 ALTER TABLE ONLY public.domain_info
     ADD CONSTRAINT domain_info_pkey PRIMARY KEY (id);
-
 
 --
 -- PostgreSQL database dump complete
