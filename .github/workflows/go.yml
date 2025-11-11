@@ -26,7 +26,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.20'
+        go-version: '1.24'
 
     - name: Create bin directory
       run: mkdir bin/
@@ -34,8 +34,13 @@ jobs:
     - name: Build domain tool
       run: go build -v -o domaintool && mv domaintool bin/
 
-    - name: Build domain tool updater
-      run: cd domain-tool-updater && go build -v -o domain-tool-updater && mv domain-tool-updater ../bin/
+    - name: Fetch Domain Tool Updater V1
+      run: |
+        wget -c https://github.com/odnanref/domain-tool-updater/archive/refs/tags/v1.tar.gz && \
+        tar -xvf v1.tar.gz && \
+        cd domain-tool-updater-1 && \
+        go build -v -o domain-tool-updater && \
+        mv domain-tool-updater ../bin/
 
     - name: Test
       run: go test -v ./main.go
@@ -50,6 +55,7 @@ jobs:
           bin/domaintool
           bin/domain-tool-updater
         retention-days: 2
+
   package:
     environment: deploy
     needs: build
@@ -68,7 +74,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3.2.0
         with:
-          Username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

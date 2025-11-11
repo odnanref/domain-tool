@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## [[2025-11-11]]
+- Separation of code of domain-tool-updater from the domain-tool site
+
 ## [[2024-09-12]]
 - Support for Whois Fetch of domains
 - Able to parse Expire Date from Domain
